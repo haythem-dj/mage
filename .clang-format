@@ -1,0 +1,17 @@
+---
+BasedOnStyle: Microsoft
+AccessModifierOffset: '-4'
+AlignAfterOpenBracket: DontAlign
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: Always
+AllowShortLoopsOnASingleLine: 'true'
+Language: Cpp
+NamespaceIndentation: All
+SortIncludes: 'true'
+SpacesInParentheses: 'false'
+SpacesInSquareBrackets: 'false'
+PointerAlignment: Left
+ReferenceAlignment: Left
+AlwaysBreakTemplateDeclarations: 'true'
+BreakBeforeBraces: Allman
+...
