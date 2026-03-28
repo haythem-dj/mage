@@ -1,31 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <SDL3/SDL.h>
+
 #include "da.h"
 
-typedef struct
-{
-    float key;
-    char value;
-} kv_pair;
+#define WIDTH 800
+#define HEIGHT 800
 
 int main()
 {
-    kv_pair* pairs;
-
-    for (size_t i = 0; i < 9; i++)
+    if (!SDL_Init(SDL_INIT_VIDEO))
     {
-        kv_pair pair = {5.f, 'a'};
-        // da_append(pairs, pair);
-        da_append(pairs, ((kv_pair){5.f, 'a'}));
+        perror("SDL_Init failed");
+        exit(EXIT_FAILURE);
     }
 
-    for (size_t i = 0; i < da_size(pairs); i++)
+    SDL_Window* window = SDL_CreateWindow("mage", WIDTH, HEIGHT, SDL_WINDOW_RESIZABLE);
+    if (window == NULL)
     {
-        printf("\tkey: %f, value: %c\n", pairs[i].key, pairs[i].value);
+        perror("SDL_CreateWindow failed");
+        exit(EXIT_FAILURE);
     }
 
-    printf("count: %zu, capacity: %zu\n", da_size(pairs), da_capacity(pairs));
+    printf("Hello, World!\n");
 
     return 0;
 }

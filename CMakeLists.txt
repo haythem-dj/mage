@@ -11,5 +11,9 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
 
+find_package(SDL3 REQUIRED)
+
 file(GLOB_RECURSE SRCS src/*.c)
 add_executable(mage ${SRCS})
+
+target_link_libraries(mage SDL3::SDL3-static)
