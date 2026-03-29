@@ -10,12 +10,12 @@ typedef struct
 {
     size_t count;
     size_t capacity;
-} header;
+} Header;
 
 #define da_init(arr)                                                                                                   \
     do                                                                                                                 \
     {                                                                                                                  \
-        header* h = (header*)malloc(sizeof(header) + INIT_CAPACITY * sizeof(*(arr)));                                  \
+        Header* h = (Header*)malloc(sizeof(Header) + INIT_CAPACITY * sizeof(*(arr)));                                  \
         if (!h)                                                                                                        \
         {                                                                                                              \
             perror("malloc failed");                                                                                   \
@@ -31,16 +31,16 @@ typedef struct
     {                                                                                                                  \
         if ((arr) == NULL)                                                                                             \
         {                                                                                                              \
-            header* h = (header*)malloc(sizeof(header) + INIT_CAPACITY * sizeof(*(arr)));                              \
+            Header* h = (Header*)malloc(sizeof(Header) + INIT_CAPACITY * sizeof(*(arr)));                              \
             h->capacity = INIT_CAPACITY;                                                                               \
             h->count = 0;                                                                                              \
             (arr) = (void*)(h + 1);                                                                                    \
         }                                                                                                              \
-        header* h = ((header*)(arr) - 1);                                                                              \
+        Header* h = ((Header*)(arr) - 1);                                                                              \
         if (h->count >= h->capacity)                                                                                   \
         {                                                                                                              \
             h->capacity *= CAPACITY_FACTOR;                                                                            \
-            h = realloc(h, sizeof(header) + h->capacity * sizeof(*(arr)));                                             \
+            h = realloc(h, sizeof(Header) + h->capacity * sizeof(*(arr)));                                             \
             if (!h)                                                                                                    \
             {                                                                                                          \
                 perror("realloc failed");                                                                              \
@@ -51,6 +51,6 @@ typedef struct
         (arr)[h->count++] = (x);                                                                                       \
     } while (false)
 
-#define da_size(arr) ((header*)(arr) - 1)->count
-#define da_capacity(arr) ((header*)(arr) - 1)->capacity
+#define da_size(arr) ((Header*)(arr) - 1)->count
+#define da_capacity(arr) ((Header*)(arr) - 1)->capacity
 #endif

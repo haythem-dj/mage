@@ -16,4 +16,7 @@ find_package(SDL3 REQUIRED)
 file(GLOB_RECURSE SRCS src/*.c)
 add_executable(mage ${SRCS})
 
-target_link_libraries(mage SDL3::SDL3-static)
+target_link_libraries(mage PRIVATE
+    SDL3::SDL3-static
+    m
+)
