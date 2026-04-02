@@ -1,5 +1,5 @@
-#ifndef VEC2_H
-#define VEC2_H
+#ifndef VEC2_H_
+#define VEC2_H_
 
 #include <SDL3/SDL_log.h>
 #include <math.h>
@@ -21,4 +21,4 @@ static inline Vec2 vec2_norm(Vec2 v)
     return len != 0.0f ? vec2_scale(v, 1 / len) : vec2_zero();
 }
 
-#endif
+#endif // VEC2_H_

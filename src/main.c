@@ -4,55 +4,11 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
+#include "player.h"
 #include "vec2.h"
 
 #define INIT_WIDTH 600
 #define INIT_HEIGHT 600
-
-typedef struct
-{
-    Vec2 size;
-    Vec2 position;
-    Vec2 velocity;
-
-    SDL_Color color;
-    
-    float speed;
-    float gravity;
-} Player;
-
-void player_init(Player* player, Vec2 position, Vec2 size)
-{
-    player->size = size;
-    player->position = position;
-    player->velocity = vec2_zero();
-    player->color = (SDL_Color){24, 240, 24, 255};
-    player->speed = 500.0f;
-    player->gravity = 100.0f;
-}
-
-void player_update(Player* player, float dt)
-{
-    const bool* keyboard_state = SDL_GetKeyboardState(NULL);
-
-    Vec2 direction = vec2(0.0f, 0.0f);
-
-    if (keyboard_state[SDL_SCANCODE_W]) direction.y -= 1.0f;
-    else if (keyboard_state[SDL_SCANCODE_S])
-        direction.y = 1.0f;
-    else
-        direction.y = 0.0f;
-
-    if (keyboard_state[SDL_SCANCODE_A]) direction.x = -1.0f;
-    else if (keyboard_state[SDL_SCANCODE_D])
-        direction.x = 1.0f;
-    else
-        direction.x = 0.0f;
-
-    direction = vec2_norm(direction);
-
-    player->position = vec2_add(player->position, vec2_scale(direction, player->speed * dt));
-}
 
 typedef struct
 {
@@ -63,7 +19,7 @@ typedef struct
     int height;
 
     bool is_fullscreen;
-    
+
     uint64_t last_time;
 
     Player player;
@@ -88,8 +44,8 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         return SDL_APP_FAILURE;
     }
 
-    if (!SDL_CreateWindowAndRenderer(
-            "mage", app_state->width, app_state->height, SDL_WINDOW_RESIZABLE, &app_state->window, &app_state->renderer))
+    if (!SDL_CreateWindowAndRenderer("mage", app_state->width, app_state->height, SDL_WINDOW_RESIZABLE,
+            &app_state->window, &app_state->renderer))
     {
         SDL_Log("SDL_CreateWindowAndRenderer failed. Error: %s", SDL_GetError());
         return SDL_APP_FAILURE;
@@ -128,7 +84,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
             SDL_SetWindowFullscreen(app_state->window, app_state->is_fullscreen);
             break;
         }
-        
+
         default:
             break;
         }
@@ -139,9 +95,10 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
     case SDL_EVENT_WINDOW_RESIZED:
     {
         SDL_GetWindowSize(app_state->window, &app_state->width, &app_state->height);
+        SDL_Log("%d", app_state->width);
         break;
     }
-    
+
     default:
         break;
     }
@@ -159,15 +116,20 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 
     player_update(&app_state->player, dt);
 
-    SDL_FRect player_rect = {
-        app_state->player.position.x, app_state->player.position.y, app_state->player.size.x, app_state->player.size.y};
-
     SDL_SetRenderDrawColor(app_state->renderer, 24, 24, 24, 255);
     SDL_RenderClear(app_state->renderer);
 
-    SDL_SetRenderDrawColor(app_state->renderer, 24, 240, 24, 255);
-    SDL_RenderFillRect(app_state->renderer, &player_rect);
-    
+    // player
+    player_render(&app_state->player, app_state->renderer);
+
+    // ground
+    SDL_FRect ground_rect = {0.0f, 500.0f, app_state->width, 100.0f};
+
+    SDL_SetRenderDrawColor(app_state->renderer, 0x24, 0xee, 0x24, 0xff);
+    SDL_RenderFillRect(app_state->renderer, &ground_rect);
+    SDL_SetRenderDrawColor(app_state->renderer, 0xff, 0xff, 0xff, 0xff);
+    SDL_RenderRect(app_state->renderer, &ground_rect);
+
     SDL_RenderPresent(app_state->renderer);
 
     return SDL_APP_CONTINUE;
@@ -179,8 +141,8 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
 
     SDL_DestroyRenderer(app_state->renderer);
     SDL_DestroyWindow(app_state->window);
-    
+
     SDL_Quit();
-    
+
     free(app_state);
 }

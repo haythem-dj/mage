@@ -1,5 +1,5 @@
-#ifndef DA_H
-#define DA_H
+#ifndef DA_H_
+#define DA_H_
 
 #include <stdlib.h>
 
@@ -53,4 +53,4 @@ typedef struct
 
 #define da_size(arr) ((Header*)(arr) - 1)->count
 #define da_capacity(arr) ((Header*)(arr) - 1)->capacity
-#endif
+#endif // DA_H_
