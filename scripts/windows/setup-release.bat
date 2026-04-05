@@ -1,1 +1,0 @@
-cmake -G "MinGW Makefiles" -S %~dp0..\..\ -B "%~dp0..\..\bin\Release" -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=D:/Haythem/Libraries

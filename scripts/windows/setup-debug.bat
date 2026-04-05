@@ -1,1 +1,0 @@
-cmake -G "MinGW Makefiles" -S %~dp0..\..\ -B "%~dp0..\..\bin\Debug" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=D:/Haythem/Libraries
