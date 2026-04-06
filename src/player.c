@@ -46,7 +46,7 @@ void player_update(Player* player, float dt)
 
     player_move(player, dt);
 
-    if (player->on_ground) player->acceleration.x -= player->friction * player->velocity.x * absf(player->velocity.x);
+    if (player->on_ground) player->acceleration.x -= player->friction * player->velocity.x;
 
     player->velocity = vec2_add(player->velocity, vec2_scale(player->acceleration, dt));
     if (player->velocity.y > 0) player->acceleration.y *= 1.5f;
