@@ -13,30 +13,29 @@ This project serves as a foundation for building a custom game engine or experim
 ## Requirements
 
 - C compiler (GCC / Clang / MSVC)
-- CMake
 - SDL3
 
 ## Build
+Currently this project only works for me. It uses [nob](https://github.com/tsoding/nob.h) a build system. 
 
-This project uses CMake, so it can generate build files for any platform or IDE supported by CMake.
-Scripts are available for Linux and Windows, but they assume:
-
-- gcc is installed
-- make is available
-
-Make sure these tools are installed before running the scripts.
-
-## SDL3 Dependency
-
-CMake uses find_package(SDL3)
-
-This means CMake must be able to locate SDL3 on your system.
-You can either install SDL using a system package manager or download pre built binaries or build it your self.
-
-### Important Note
-
-- if you did not install SDL3 system-wide, you must tell CMake where SDL3 is installed:
-
+- Run once
 ```bash
-cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="C:/Libraries/SDL3"
+# Linux
+gcc -o nob nob.c
+
+# Window
+gcc -o nob.exe nob.c
 ```
+
+- To build
+```bash
+nob
+```
+
+-To build and run
+```bash
+nob run
+```
+
+## License
+MIT: see [LICENSE](LICENSE)
