@@ -1,17 +1,17 @@
+#include <stdio.h>
 #include <stdlib.h>
 
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
-#define NOB_IMPLEMENTATION
-#include <nob.h>
-
 #include "player.h"
 #include "vec2.h"
 
 #define INIT_WIDTH 600
 #define INIT_HEIGHT 600
+
+#define ERROR(fmt, ...) fprintf(stderr, "[ERROR] %s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 typedef struct
 {
@@ -33,7 +33,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     AppState* app_state = (AppState*)malloc(sizeof(AppState));
     if (!app_state)
     {
-        nob_log(NOB_ERROR, "malloc faile. Error: Could not allocate memory for AppState.");
+        ERROR("malloc faile. Error: Could not allocate memory for AppState.");
         return SDL_APP_FAILURE;
     }
 
@@ -43,14 +43,14 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
-        nob_log(NOB_ERROR, "SDL_Init failed. Error: %s", SDL_GetError());
+        ERROR("SDL_Init failed. Error: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
     if (!SDL_CreateWindowAndRenderer("mage", app_state->width, app_state->height, SDL_WINDOW_RESIZABLE,
             &app_state->window, &app_state->renderer))
     {
-        nob_log(NOB_ERROR, "SDL_CreateWindowAndRenderer failed. Error: %s", SDL_GetError());
+        ERROR("SDL_CreateWindowAndRenderer failed. Error: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
