@@ -8,8 +8,11 @@
 
 typedef struct
 {
+    SDL_Renderer* renderer;
+
     Vec2 size;
     uint32_t color;
+    SDL_Texture* texture;
 
     Vec2 acceleration;
     Vec2 velocity;
@@ -25,8 +28,8 @@ typedef struct
     float gravity;
 } Player;
 
-void player_init(Player* player, Vec2 position, Vec2 size);
+int player_init(Player* player, SDL_Renderer* renderer, Vec2 position, Vec2 size);
 void player_update(Player* player, float dt);
-void player_render(Player* player, void* renderer);
+void player_render(Player* player);
 
 #endif // PLAYER_H_

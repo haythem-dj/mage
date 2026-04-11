@@ -2,6 +2,9 @@
 #include "vec2.h"
 
 #include <math.h>
+#include <stdio.h>
+
+#define ERROR(fmt, ...) fprintf(stderr, "[ERROR] %s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 static float clamp(float value, float min, float max) { return value < min ? min : value > max ? max : value; }
 
@@ -19,10 +22,12 @@ static void player_move(Player* player)
     }
 }
 
-void player_init(Player* player, Vec2 position, Vec2 size)
+int player_init(Player* player, SDL_Renderer* renderer, Vec2 position, Vec2 size)
 {
-    player->size = size;
-    player->color = 0xEE4433FF;
+    player->renderer = renderer;
+
+    player->size = vec2(128.0f, 64.0f);
+
     player->position = position;
     player->velocity = vec2_zero();
     player->acceleration = vec2_zero();
@@ -32,6 +37,22 @@ void player_init(Player* player, Vec2 position, Vec2 size)
     player->max_speed = 500.f;
     player->friction = 2.0f;
     player->gravity = 2600.0f;
+
+    SDL_Surface* surface = SDL_LoadSurface("res/player-idle-1.png");
+    if (!surface)
+    {
+        ERROR("SDL_LoadSurface failed. Error: %s", SDL_GetError());
+        return 0;
+    }
+
+    player->texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_DestroySurface(surface);
+
+    if (!player->texture)
+    {
+        ERROR("SDL_CreateTextureFromSurface failed. Error: %s", SDL_GetError());
+        return 0;
+    }
 }
 
 void player_update(Player* player, float dt)
@@ -53,13 +74,8 @@ void player_update(Player* player, float dt)
     }
 }
 
-void player_render(Player* player, void* renderer)
+void player_render(Player* player)
 {
     SDL_FRect player_rect = {player->position.x, player->position.y, player->size.x, player->size.y};
-    uint8_t alpha = (player->color >> 8 * 0) & 0xFF;
-    uint8_t blue  = (player->color >> 8 * 1) & 0xFF;
-    uint8_t green = (player->color >> 8 * 2) & 0xFF;
-    uint8_t red   = (player->color >> 8 * 3) & 0xFF;
-    SDL_SetRenderDrawColor(renderer, red, green, blue, alpha);
-    SDL_RenderFillRect(renderer, &player_rect);
+    SDL_RenderTexture(player->renderer, player->texture, NULL, &player_rect);
 }

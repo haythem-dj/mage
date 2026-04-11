@@ -47,15 +47,21 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         return SDL_APP_FAILURE;
     }
 
-    SDL_WindowFlags flags = app_state->is_fullscreen ? SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN : SDL_WINDOW_RESIZABLE;
+    SDL_WindowFlags flags =
+        app_state->is_fullscreen ? SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN : SDL_WINDOW_RESIZABLE;
 
-    if (!SDL_CreateWindowAndRenderer("mage", app_state->width, app_state->height, flags, &app_state->window, &app_state->renderer))
+    if (!SDL_CreateWindowAndRenderer(
+            "mage", app_state->width, app_state->height, flags, &app_state->window, &app_state->renderer))
     {
         ERROR("SDL_CreateWindowAndRenderer failed. Error: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
-    player_init(&app_state->player, vec2_zero(), (Vec2){100.0f, 100.0f});
+    if (player_init(&app_state->player, app_state->renderer, vec2_zero(), (Vec2){100.0f, 100.0f}) == 0)
+    {
+        ERROR("player_init failed.");
+        return SDL_APP_FAILURE;
+    }
 
     app_state->last_time = SDL_GetTicks();
 
@@ -123,7 +129,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     SDL_RenderClear(app_state->renderer);
 
     // player
-    player_render(&app_state->player, app_state->renderer);
+    player_render(&app_state->player);
 
     // ground
     SDL_FRect ground_rect = {0.0f, 500.0f, app_state->width, 100.0f};
