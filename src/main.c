@@ -44,8 +44,9 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         return SDL_APP_FAILURE;
     }
 
-    if (!SDL_CreateWindowAndRenderer("mage", app_state->width, app_state->height, SDL_WINDOW_RESIZABLE,
-            &app_state->window, &app_state->renderer))
+    SDL_WindowFlags flags = app_state->is_fullscreen ? SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN : SDL_WINDOW_RESIZABLE;
+
+    if (!SDL_CreateWindowAndRenderer("mage", app_state->width, app_state->height, flags, &app_state->window, &app_state->renderer))
     {
         SDL_Log("SDL_CreateWindowAndRenderer failed. Error: %s", SDL_GetError());
         return SDL_APP_FAILURE;
