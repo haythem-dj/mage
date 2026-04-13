@@ -5,13 +5,14 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
+#include "asset_manager.h"
+#include "common.h"
+#include "game_state.h"
 #include "player.h"
 #include "vec2.h"
 
 #define INIT_WIDTH 600
 #define INIT_HEIGHT 600
-
-#define ERROR(fmt, ...) fprintf(stderr, "[ERROR] %s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 typedef struct
 {
@@ -24,6 +25,8 @@ typedef struct
     bool is_fullscreen;
 
     uint64_t last_time;
+
+    GameState gs;
 
     Player player;
 } AppState;
@@ -57,7 +60,8 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         return SDL_APP_FAILURE;
     }
 
-    if (player_init(&app_state->player, app_state->renderer, vec2_zero(), (Vec2){100.0f, 100.0f}) == 0)
+    asset_manager_init(&app_state->gs.assets, app_state->renderer);
+    if (player_init(&app_state->player, &app_state->gs) == 0)
     {
         ERROR("player_init failed.");
         return SDL_APP_FAILURE;
@@ -123,13 +127,13 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     float dt = (current - app_state->last_time) / 1000.0f;
     app_state->last_time = current;
 
-    player_update(&app_state->player, dt);
+    player_update(&app_state->player, &app_state->gs, dt);
 
     SDL_SetRenderDrawColor(app_state->renderer, 24, 24, 24, 255);
     SDL_RenderClear(app_state->renderer);
 
     // player
-    player_render(&app_state->player);
+    player_render(&app_state->player, &app_state->gs, app_state->renderer);
 
     // ground
     SDL_FRect ground_rect = {0.0f, 500.0f, app_state->width, 100.0f};

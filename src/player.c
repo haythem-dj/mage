@@ -1,69 +1,59 @@
+#include "common.h"
 #include "player.h"
-#include "vec2.h"
 
 #include <math.h>
 #include <stdio.h>
 
-#define ERROR(fmt, ...) fprintf(stderr, "[ERROR] %s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+static int clamp(int value, int min, int max) { return value < min ? min : value > max ? max : value; }
+static float clampf(float value, float min, float max) { return value < min ? min : value > max ? max : value; }
 
-static float clamp(float value, float min, float max) { return value < min ? min : value > max ? max : value; }
+static float lerp(float a, float b, float t) { return a + t * (b - a); }
 
-static void player_move(Player* player)
+static void player_init_sprites(Player* player, AssetManager* am)
+{
+    player->sprites[PLAYER_STATE_IDLE] = sprite_load(am, "res/player/idle.png");
+    player->sprites[PLAYER_STATE_IDLE].src.w = 128.0f;
+    player->sprites[PLAYER_STATE_IDLE].src.h = 64.0f;
+
+    player->sprites[PLAYER_STATE_RUN] = sprite_load(am, "res/player/run.png");
+    player->sprites[PLAYER_STATE_RUN].src.w = 128.0f;
+    player->sprites[PLAYER_STATE_RUN].src.h = 64.0f;
+
+    player->sprites[PLAYER_STATE_JUMP] = sprite_load(am, "res/player/jump.png");
+    player->sprites[PLAYER_STATE_JUMP].src.w = 128.0f;
+    player->sprites[PLAYER_STATE_JUMP].src.h = 64.0f;
+}
+
+static void player_init_animations(Player* player)
+{
+    player->animations[PLAYER_STATE_IDLE] =
+        (Animation){.time = 0.0f, .frame = 0, .frame_count = 4, .frame_speed = 5, .loop = true};
+    player->animations[PLAYER_STATE_RUN] =
+        (Animation){.time = 0.0f, .frame = 0, .frame_count = 4, .frame_speed = 10, .loop = true};
+    player->animations[PLAYER_STATE_JUMP] =
+        (Animation){.time = 0.0f, .frame = 0, .frame_count = 4, .frame_speed = 7, .loop = true};
+}
+
+static void player_move(Player* player, float dt)
 {
     const bool* keyboard_state = SDL_GetKeyboardState(NULL);
-    if (keyboard_state[SDL_SCANCODE_D] || keyboard_state[SDL_SCANCODE_RIGHT])
-        player->acceleration.x = player->move_acceleration;
-    if (keyboard_state[SDL_SCANCODE_A] || keyboard_state[SDL_SCANCODE_LEFT])
-        player->acceleration.x = -player->move_acceleration;
+
+    float target_velocity = 0;
+
+    if (keyboard_state[SDL_SCANCODE_D] || keyboard_state[SDL_SCANCODE_RIGHT]) target_velocity = player->move_speed;
+    if (keyboard_state[SDL_SCANCODE_A] || keyboard_state[SDL_SCANCODE_LEFT]) target_velocity = -player->move_speed;
     if (keyboard_state[SDL_SCANCODE_SPACE] && player->on_ground)
     {
         player->velocity.y = -player->jump_acceleration;
         player->on_ground = false;
     }
-}
 
-int player_init(Player* player, SDL_Renderer* renderer, Vec2 position, Vec2 size)
-{
-    player->renderer = renderer;
+    float friction = player->on_ground ? player->friction : player->friction * 0.1;
 
-    player->size = vec2(128.0f, 64.0f);
+    player->velocity.x = lerp(player->velocity.x, target_velocity, friction * dt);
+    if (fabsf(player->velocity.x - target_velocity) < 100.0f) player->velocity.x = target_velocity;
+    player->velocity.y += player->gravity * dt;
 
-    player->position = position;
-    player->velocity = vec2_zero();
-    player->acceleration = vec2_zero();
-    player->on_ground = false;
-    player->move_acceleration = 2000.0f;
-    player->jump_acceleration = 700.0f;
-    player->max_speed = 500.f;
-    player->friction = 2.0f;
-    player->gravity = 2600.0f;
-
-    SDL_Surface* surface = SDL_LoadSurface("res/player-idle-1.png");
-    if (!surface)
-    {
-        ERROR("SDL_LoadSurface failed. Error: %s", SDL_GetError());
-        return 0;
-    }
-
-    player->texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_DestroySurface(surface);
-
-    if (!player->texture)
-    {
-        ERROR("SDL_CreateTextureFromSurface failed. Error: %s", SDL_GetError());
-        return 0;
-    }
-}
-
-void player_update(Player* player, float dt)
-{
-    player->acceleration = vec2(0.0f, player->gravity);
-    player_move(player);
-
-    if (player->on_ground) player->acceleration.x -= player->friction * player->velocity.x;
-    player->velocity = vec2_add(player->velocity, vec2_scale(player->acceleration, dt));
-    if (player->velocity.y > 0) player->acceleration.y *= 1.5f;
-    player->velocity.x = clamp(player->velocity.x, -player->max_speed, player->max_speed);
     player->position = vec2_add(player->position, vec2_scale(player->velocity, dt));
 
     if (player->position.y >= 500.0f - player->size.y)
@@ -74,8 +64,74 @@ void player_update(Player* player, float dt)
     }
 }
 
-void player_render(Player* player)
+static void player_animate(Player* player, float dt)
+{
+    Animation* anim = &player->animations[player->state];
+    anim->time += dt * anim->frame_speed;
+    uint32_t index = (size_t)anim->time;
+    if (anim->loop) index = index % anim->frame_count;
+    else
+        index = clamp(index, 0, anim->frame_count);
+    player->sprites[player->state].src.x = player->sprites[player->state].src.w * index;
+}
+
+int player_init(Player* player, GameState* gs)
+{
+    player->position = vec2_zero();
+    player->velocity = vec2_zero();
+
+    player->size = vec2(128.0f * 1.5, 64.0f * 1.5);
+
+    player->on_ground = false;
+    player->jump_acceleration = 700.0f;
+    player->move_speed = 400.f;
+    player->friction = 20.0f;
+    player->gravity = 2600.0f;
+
+    player->flip = false;
+
+    player->state = PLAYER_STATE_IDLE;
+
+    player_init_sprites(player, &gs->assets);
+    player_init_animations(player);
+
+    return 1;
+}
+
+void player_update(Player* player, GameState* gs, float dt)
+{
+    player_move(player, dt);
+
+    PlayerState last_state = player->state;
+
+    if (player->on_ground)
+    {
+        if (player->velocity.x > 0)
+        {
+            player->state = PLAYER_STATE_RUN;
+            player->flip = false;
+        }
+        else if (player->velocity.x < 0)
+        {
+            player->state = PLAYER_STATE_RUN;
+            player->flip = true;
+        }
+        else
+            player->state = PLAYER_STATE_IDLE;
+    }
+    else
+        player->state = PLAYER_STATE_JUMP;
+
+    if (last_state != player->state) player->animations[player->state].time = 0.0f;
+
+    player_animate(player, dt);
+}
+
+void player_render(Player* player, GameState* gs, SDL_Renderer* renderer)
 {
     SDL_FRect player_rect = {player->position.x, player->position.y, player->size.x, player->size.y};
-    SDL_RenderTexture(player->renderer, player->texture, NULL, &player_rect);
+
+    Sprite* active_sprite = &player->sprites[player->state];
+
+    sprite_render(*active_sprite, renderer, player_rect, player->flip);
 }

@@ -37,17 +37,23 @@ int main(int argc, char** argv)
     Array lib_dirs = {0};
     Array libs = {0};
 
+    Nob_Cmd cmd = {0};
+
+    if (!nob_mkdir_if_not_exists("bin")) return 1;
+    nob_cmd_append(&cmd, "gcc", "-o", "./bin/mage");
+
     nob_da_append(&srcs, "src/main.c");
     nob_da_append(&srcs, "src/player.c");
+    nob_da_append(&srcs, "src/asset_manager.c");
+    nob_da_append(&srcs, "src/sprite.c");
 
     nob_da_append(&include_dirs, ".");
-
-    nob_da_append(&libs, ":libSDL3.a");
 
 #ifdef _WIN32
     const char* app_output = "./bin/mage.exe";
     nob_da_append(&include_dirs, "D:/Haythem/Libraries/SDL3/include");
     nob_da_append(&lib_dirs, "D:/Haythem/Libraries/SDL3/lib");
+    nob_da_append(&libs, ":libSDL3.a");
     nob_da_append(&libs, "gdi32");
     nob_da_append(&libs, "winmm");
     nob_da_append(&libs, "imm32");
@@ -59,13 +65,11 @@ int main(int argc, char** argv)
     nob_da_append(&libs, "hid");
 #else
     const char* app_output = "./bin/mage";
-    nob_da_append(&include_dirs, "$HOME/opt/dev/SDL3/include");
-    nob_da_append(&lib_dirs, "$HOME/opt/dev/SDL3/lib");
+    const char* home = getenv("HOME");
+    nob_da_append(&include_dirs, nob_temp_sprintf("%s/dev/opt/SDL3/include", home));
+    nob_da_append(&libs, "m");
+    nob_da_append(&srcs, nob_temp_sprintf("%s/dev/opt/SDL3/lib/libSDL3.a", home));
 #endif
-    if (!nob_mkdir_if_not_exists("bin")) return 1;
-
-    Nob_Cmd cmd = {0};
-    nob_cmd_append(&cmd, "gcc", "-o", "./bin/mage");
 
     for (int i = 0; i < srcs.count; i++) nob_cmd_append(&cmd, srcs.items[i]);
     for (int i = 0; i < include_dirs.count; i++) nob_cmd_append(&cmd, "-I", include_dirs.items[i]);
