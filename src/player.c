@@ -22,6 +22,10 @@ static void player_init_sprites(Player* player, AssetManager* am)
     player->sprites[PLAYER_STATE_JUMP] = sprite_load(am, "res/player/jump.png");
     player->sprites[PLAYER_STATE_JUMP].src.w = 128.0f;
     player->sprites[PLAYER_STATE_JUMP].src.h = 64.0f;
+
+    player->sprites[PLAYER_STATE_ATTACK] = sprite_load(am, "res/player/attack.png");
+    player->sprites[PLAYER_STATE_ATTACK].src.w = 128.0f;
+    player->sprites[PLAYER_STATE_ATTACK].src.h = 64.0f;
 }
 
 static void player_init_animations(Player* player)
@@ -31,7 +35,9 @@ static void player_init_animations(Player* player)
     player->animations[PLAYER_STATE_RUN] =
         (Animation){.time = 0.0f, .frame = 0, .frame_count = 4, .frame_speed = 10, .loop = true};
     player->animations[PLAYER_STATE_JUMP] =
-        (Animation){.time = 0.0f, .frame = 0, .frame_count = 4, .frame_speed = 7, .loop = true};
+        (Animation){.time = 0.0f, .frame = 0, .frame_count = 4, .frame_speed = 7, .loop = false};
+    player->animations[PLAYER_STATE_ATTACK] =
+        (Animation){.time = 0.0f, .frame = 0, .frame_count = 4, .frame_speed = 15, .loop = false};
 }
 
 static void player_move(Player* player, float dt)
@@ -47,6 +53,8 @@ static void player_move(Player* player, float dt)
         player->velocity.y = -player->jump_acceleration;
         player->on_ground = false;
     }
+    if (keyboard_state[SDL_SCANCODE_RETURN] && player->attack_counter == 0)
+        player->attack_counter = player->attack_counter_max;
 
     float friction = player->on_ground ? player->friction : player->friction * 0.1;
 
@@ -90,6 +98,9 @@ int player_init(Player* player, GameState* gs)
 
     player->flip = false;
 
+    player->attack_counter_max = 150;
+    player->attack_counter = 0;
+
     player->state = PLAYER_STATE_IDLE;
 
     player_init_sprites(player, &gs->assets);
@@ -102,9 +113,15 @@ void player_update(Player* player, GameState* gs, float dt)
 {
     player_move(player, dt);
 
+    player->attack_counter = clamp(--player->attack_counter, 0, player->attack_counter_max);
+
     PlayerState last_state = player->state;
 
-    if (player->on_ground)
+    if (player->attack_counter > 0)
+    {
+        player->state = PLAYER_STATE_ATTACK;
+    }
+    else if (player->on_ground)
     {
         if (player->velocity.x > 0)
         {

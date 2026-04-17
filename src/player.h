@@ -23,6 +23,7 @@ typedef enum
     PLAYER_STATE_IDLE,
     PLAYER_STATE_RUN,
     PLAYER_STATE_JUMP,
+    PLAYER_STATE_ATTACK,
     PLAYER_STATE_COUNT
 } PlayerState;
 
@@ -42,6 +43,9 @@ typedef struct
     float gravity;
 
     bool flip;
+
+    uint32_t attack_counter_max;
+    uint32_t attack_counter;
 
     PlayerState state;
 
