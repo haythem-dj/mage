@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#if 0
 #define SDL_MAIN_USE_CALLBACKS
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -158,3 +158,43 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
 
     free(app_state);
 }
+#else
+
+#include "ecs.h"
+
+void transform_system(Transform* transform, void* user_data)
+{
+    Vec2 pos = transform->position;
+    Vec2 sca = transform->scale;
+    float rot = transform->rotation;
+
+    printf("pos: (%f, %f), scale: (%f, %f), rot: %f\n", pos.x, pos.y, sca.x, sca.y, rot);
+    transform->position.x += 0.01f;
+}
+
+int main(void)
+{
+    ECS ecs = {0};
+    ecs_init(&ecs);
+
+    // ecs_set_transform_system(&ecs, transform_system);
+
+    EntityID e = ecs_create_entity(&ecs);
+    EntityID e2 = ecs_create_entity(&ecs);
+
+    Transform tr = {(Vec2){4.7f, -0.4f}, (Vec2){1.0f, 1.0f}, 0.0f};
+    ecs_add_transform(&ecs, e, tr);
+    ecs_add_transform(&ecs, e2, tr);
+    ecs_remove_transform(&ecs, e);
+
+    ecs_add_component(ecs, e, Transform, tr);
+
+    ecs_destroy_entity(&ecs, e);
+    ecs_destroy_entity(&ecs, e2);
+
+    ecs_shutdown(&ecs);
+
+    return 0;
+}
+
+#endif

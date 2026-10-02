@@ -46,6 +46,7 @@ int main(int argc, char** argv)
     nob_da_append(&srcs, "src/player.c");
     nob_da_append(&srcs, "src/asset_manager.c");
     nob_da_append(&srcs, "src/sprite.c");
+    nob_da_append(&srcs, "src/ecs.c");
 
     nob_da_append(&include_dirs, ".");
 

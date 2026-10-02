@@ -3,8 +3,8 @@
 
 #define H_VERSION_MAJOR 0
 #define H_VERSION_MINOR 1
-#define H_VERSION_PATCH 3
-#define H_VERSION_STRING "0.1.3"
+#define H_VERSION_PATCH 4
+#define H_VERSION_STRING "0.1.4"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -156,9 +156,10 @@ typedef struct
 
 #define H_HT_TABLE_SIZE 64
 
-#define h_hash(k)                                                                                                      \
+#define h_hash(key)                                                                                                    \
     ({                                                                                                                 \
         uint32_t h = 5381;                                                                                             \
+        uint8_t* k = (uint8_t*)(key);                                                                                  \
         while (*(k)) h = h * 33 ^ (uint32_t)*(k)++;                                                                    \
         h % H_HT_TABLE_SIZE;                                                                                           \
     })
